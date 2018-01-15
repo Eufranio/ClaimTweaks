@@ -1,0 +1,39 @@
+buildscript {
+    repositories {
+        maven {
+            name = "Forge"
+            url = "http://files.minecraftforge.net/maven"
+        }
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+    }
+}
+
+plugins {
+    id 'org.spongepowered.plugin' version '0.8.1'
+    id 'net.minecrell.vanillagradle.server' version '2.2-3'
+}
+
+repositories {
+    maven { url 'https://jitpack.io' }
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+minecraft {
+    version = '1.12.2'
+    mappings = 'snapshot_20180114'
+}
+
+group = pluginGroup
+version = pluginVersion
+
+dependencies {
+    compile 'org.spongepowered:spongeapi:7.0.0-SNAPSHOT'
+    compile 'me.ryanhamshire:griefprevention:1.12.2-4.3.0.511:api'
+    compile 'com.github.CrushedPixel:PacketGate:0.1.1'
+}
+
+sponge.plugin.id = pluginId
