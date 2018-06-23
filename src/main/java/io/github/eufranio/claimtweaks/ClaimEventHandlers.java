@@ -19,21 +19,24 @@ public class ClaimEventHandlers {
     public void onClaimEnter(BorderClaimEvent e, @First Player player) {
         ClaimTweaks.updateSettings(e.getEnterClaim(), player.getUniqueId());
         Claim enterClaim = e.getEnterClaim();
-        if (enterClaim.getType() != ClaimType.WILDERNESS) {
-            ClaimStorage.Data data = ClaimStorage.of(enterClaim.getUniqueId());
-            if (data != null) {
-                for (String cmd : data.enterCommands) {
-                    Sponge.getCommandManager().process(Sponge.getServer().getConsole(), cmd.replace("%player%", player.getName()));
-                }
+        ClaimStorage.Data enterData = ClaimStorage.of(enterClaim.getUniqueId());
+        if (enterData != null) {
+            for (String cmd : enterData.enterCommands) {
+                Sponge.getCommandManager().process(Sponge.getServer().getConsole(), cmd.replace("%player%", player.getName()));
+            }
+            for (String cmd : enterData.playerEnterCommands) {
+                Sponge.getCommandManager().process(player, cmd);
             }
         }
+
         Claim exitClaim = e.getExitClaim();
-        if (exitClaim.getType() != ClaimType.WILDERNESS) {
-            ClaimStorage.Data data = ClaimStorage.of(exitClaim.getUniqueId());
-            if (data != null) {
-                for (String cmd : data.leaveCommands) {
-                    Sponge.getCommandManager().process(Sponge.getServer().getConsole(), cmd.replace("%player%", player.getName()));
-                }
+        ClaimStorage.Data exitData = ClaimStorage.of(exitClaim.getUniqueId());
+        if (exitData != null) {
+            for (String cmd : exitData.leaveCommands) {
+                Sponge.getCommandManager().process(Sponge.getServer().getConsole(), cmd.replace("%player%", player.getName()));
+            }
+            for (String cmd : exitData.playerLeaveCommands) {
+                Sponge.getCommandManager().process(player, cmd);
             }
         }
     }

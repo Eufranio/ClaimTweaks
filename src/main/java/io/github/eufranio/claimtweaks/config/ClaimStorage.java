@@ -32,7 +32,13 @@ public class ClaimStorage {
         public List<String> enterCommands = Lists.newArrayList();
 
         @Setting
+        public List<String> playerEnterCommands = Lists.newArrayList();
+
+        @Setting
         public List<String> leaveCommands = Lists.newArrayList();
+
+        @Setting
+        public List<String> playerLeaveCommands = Lists.newArrayList();
 
     }
 

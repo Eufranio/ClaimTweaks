@@ -26,7 +26,10 @@ public class CommandHandler {
                 .permission("claimtweaks.command.removecommand")
                 .arguments(
                         GenericArguments.string(Text.of("type")),
-                        GenericArguments.integer(Text.of("id"))
+                        GenericArguments.integer(Text.of("id")),
+                        GenericArguments.optional(
+                                GenericArguments.bool(Text.of("as player"))
+                        )
                 )
                 .executor((sender, context) -> {
                     if (!(sender instanceof Player)) {
@@ -34,12 +37,16 @@ public class CommandHandler {
                     }
                     Player p = (Player) sender;
                     Claim claim = ClaimTweaks.API.getClaimManager(p.getWorld()).getClaimAt(p.getLocation());
-                    if (claim.getType() != ClaimType.WILDERNESS) {
                         ClaimStorage.Data data = ClaimStorage.getOrCreateData(claim.getUniqueId());
                         String type = context.<String>getOne("type").get();
                         int id = context.<Integer>getOne("id").get();
+                        boolean asPlayer = context.<Boolean>getOne("as player").orElse(false);
                         if (type.equalsIgnoreCase("enter")) {
-                            data.enterCommands.remove(id);
+                            if (asPlayer) {
+                                data.playerEnterCommands.remove(id);
+                            } else {
+                                data.enterCommands.remove(id);
+                            }
                             sender.sendMessage(Text.of(TextColors.GREEN, "Successfully removed the command to this claim!"));
                         } else if (type.equalsIgnoreCase("leave")) {
                             data.leaveCommands.remove(id);
@@ -47,9 +54,6 @@ public class CommandHandler {
                         } else {
                             sender.sendMessage(Text.of(TextColors.RED, "Unknown type! Use enter/leave!"));
                         }
-                    } else {
-                        sender.sendMessage(Text.of(TextColors.RED, "You're not inside a claim!"));
-                    }
                     return CommandResult.success();
                 })
                 .build();
@@ -58,6 +62,7 @@ public class CommandHandler {
                 .permission("claimtweaks.command.addcommand")
                 .arguments(
                         GenericArguments.string(Text.of("type")),
+                        GenericArguments.bool(Text.of("as player")),
                         GenericArguments.remainingJoinedStrings(Text.of("cmd"))
                 )
                 .executor((sender, context) -> {
@@ -66,24 +71,29 @@ public class CommandHandler {
                     }
                     Player p = (Player) sender;
                     Claim claim = ClaimTweaks.API.getClaimManager(p.getWorld()).getClaimAt(p.getLocation());
-                    if (claim.getType() != ClaimType.WILDERNESS) {
-                        ClaimStorage.Data data = ClaimStorage.getOrCreateData(claim.getUniqueId());
-                        String type = context.<String>getOne("type").get();
-                        try {
-                            if (type.equalsIgnoreCase("enter")) {
-                                data.enterCommands.add(context.<String>getOne("cmd").get());
-                                sender.sendMessage(Text.of(TextColors.GREEN, "Successfully added the command to this claim!"));
-                            } else if (type.equalsIgnoreCase("leave")) {
-                                data.leaveCommands.add(context.<String>getOne("cmd").get());
-                                sender.sendMessage(Text.of(TextColors.GREEN, "Successfully added the command to this claim!"));
+                    ClaimStorage.Data data = ClaimStorage.getOrCreateData(claim.getUniqueId());
+                    String type = context.<String>getOne("type").get();
+                    boolean asPlayer = context.<Boolean>getOne("as player").orElse(false);
+                    try {
+                        if (type.equalsIgnoreCase("enter")) {
+                            if (asPlayer) {
+                                data.playerEnterCommands.add(context.<String>getOne("cmd").get());
                             } else {
-                                sender.sendMessage(Text.of(TextColors.RED, "Unknown type! Use enter/leave!"));
+                                data.enterCommands.add(context.<String>getOne("cmd").get());
                             }
-                        } catch (IndexOutOfBoundsException e) {
-                            sender.sendMessage(Text.of(TextColors.RED, "This isn't an valid ID! Try taking a look at /ctweaks listcommands again!"));
+                            sender.sendMessage(Text.of(TextColors.GREEN, "Successfully added the command to this claim!"));
+                        } else if (type.equalsIgnoreCase("leave")) {
+                            if (asPlayer) {
+                                data.playerLeaveCommands.add(context.<String>getOne("cmd").get());
+                            } else {
+                                data.leaveCommands.add(context.<String>getOne("cmd").get());
+                            }
+                            sender.sendMessage(Text.of(TextColors.GREEN, "Successfully added the command to this claim!"));
+                        } else {
+                            sender.sendMessage(Text.of(TextColors.RED, "Unknown type! Use enter/leave!"));
                         }
-                    } else {
-                        sender.sendMessage(Text.of(TextColors.RED, "You're not inside a claim!"));
+                    } catch (IndexOutOfBoundsException e) {
+                        sender.sendMessage(Text.of(TextColors.RED, "This isn't an valid ID! Try taking a look at /ctweaks listcommands again!"));
                     }
                     return CommandResult.success();
                 })
@@ -97,26 +107,42 @@ public class CommandHandler {
                     }
                     Player p = (Player) sender;
                     Claim claim = ClaimTweaks.API.getClaimManager(p.getWorld()).getClaimAt(p.getLocation());
-                    if (claim.getType() != ClaimType.WILDERNESS) {
-                        ClaimStorage.Data data = ClaimStorage.getOrCreateData(claim.getUniqueId());
-                        sender.sendMessage(Text.of(TextColors.GRAY, "--------------------------------------------------"));
-                        sender.sendMessage(Text.of(TextColors.GREEN, "Enter commands assigned to this claim: "));
-                        int id = 0;
-                        for (String cmd : data.enterCommands) {
-                            sender.sendMessage(Text.of(TextColors.BLUE, "   *" + id + " - " + cmd));
-                            id++;
-                        }
-                        sender.sendMessage(Text.of());
-                        sender.sendMessage(Text.of(TextColors.GREEN, "Leave commands assigned to this claim: "));
-                        int id2 = 0;
-                        for (String cmd : data.leaveCommands) {
-                            sender.sendMessage(Text.of(TextColors.BLUE, "   *" + id2 + " - " + cmd));
-                            id2++;
-                        }
-                        sender.sendMessage(Text.of(TextColors.GRAY, "--------------------------------------------------"));
-                    } else {
-                        sender.sendMessage(Text.of(TextColors.RED, "You're not inside a claim!"));
+                    ClaimStorage.Data data = ClaimStorage.getOrCreateData(claim.getUniqueId());
+
+                    sender.sendMessage(Text.of(TextColors.GRAY, "--------------------------------------------------"));
+
+                    sender.sendMessage(Text.of(TextColors.GREEN, "Enter commands assigned to this claim: "));
+                    int id = 0;
+                    for (String cmd : data.enterCommands) {
+                        sender.sendMessage(Text.of(TextColors.BLUE, "   *" + id + " - " + cmd));
+                        id++;
                     }
+                    sender.sendMessage(Text.of());
+
+                    sender.sendMessage(Text.of(TextColors.GREEN, "Enter commands (as player) assigned to this claim: "));
+                    id = 0;
+                    for (String cmd : data.playerEnterCommands) {
+                        sender.sendMessage(Text.of(TextColors.BLUE, "   *" + id + " - " + cmd));
+                        id++;
+                    }
+                    sender.sendMessage(Text.of());
+
+                    sender.sendMessage(Text.of(TextColors.GREEN, "Leave commands assigned to this claim: "));
+                    id = 0;
+                    for (String cmd : data.leaveCommands) {
+                        sender.sendMessage(Text.of(TextColors.BLUE, "   *" + id + " - " + cmd));
+                        id++;
+                    }
+                    sender.sendMessage(Text.of());
+
+                    sender.sendMessage(Text.of(TextColors.GREEN, "Leave commands (as player) assigned to this claim: "));
+                    id = 0;
+                    for (String cmd : data.playerLeaveCommands) {
+                        sender.sendMessage(Text.of(TextColors.BLUE, "   *" + id + " - " + cmd));
+                        id++;
+                    }
+
+                    sender.sendMessage(Text.of(TextColors.GRAY, "--------------------------------------------------"));
                     return CommandResult.success();
                 })
                 .build();
@@ -130,13 +156,9 @@ public class CommandHandler {
                     }
                     Player p = (Player) sender;
                     Claim claim = ClaimTweaks.API.getClaimManager(p.getWorld()).getClaimAt(p.getLocation());
-                    if (claim.getType() != ClaimType.WILDERNESS) {
-                        ClaimStorage.Data data = ClaimStorage.getOrCreateData(claim.getUniqueId());
-                        data.timeLock = context.<Integer>getOne("time").get();
-                        sender.sendMessage(Text.of(TextColors.GREEN, "Successfully updated the time lock of this claim!"));
-                    } else {
-                        sender.sendMessage(Text.of(TextColors.RED, "You're not inside a claim!"));
-                    }
+                    ClaimStorage.Data data = ClaimStorage.getOrCreateData(claim.getUniqueId());
+                    data.timeLock = context.<Integer>getOne("time").get();
+                    sender.sendMessage(Text.of(TextColors.GREEN, "Successfully updated the time lock of this claim!"));
                     return CommandResult.success();
                 })
                 .build();
@@ -149,16 +171,12 @@ public class CommandHandler {
                     }
                     Player p = (Player) sender;
                     Claim claim = ClaimTweaks.API.getClaimManager(p.getWorld()).getClaimAt(p.getLocation());
-                    if (claim.getType() != ClaimType.WILDERNESS) {
-                        ClaimStorage.Data data = ClaimStorage.getOrCreateData(claim.getUniqueId());
-                        data.clearWeather = !data.clearWeather;
-                        if (!data.clearWeather) {
-                            ((EntityPlayerMP) p).connection.sendPacket(new SPacketChangeGameState(7, ((WorldServer) p.getWorld()).getRainStrength(1)));
-                        }
-                        sender.sendMessage(Text.of(TextColors.GREEN, "Successfully toggled the permanent weather of this claim!"));
-                    } else {
-                        sender.sendMessage(Text.of(TextColors.RED, "You're not inside a claim!"));
+                    ClaimStorage.Data data = ClaimStorage.getOrCreateData(claim.getUniqueId());
+                    data.clearWeather = !data.clearWeather;
+                    if (!data.clearWeather) {
+                        ((EntityPlayerMP) p).connection.sendPacket(new SPacketChangeGameState(7, ((WorldServer) p.getWorld()).getRainStrength(1)));
                     }
+                    sender.sendMessage(Text.of(TextColors.GREEN, "Successfully toggled the permanent weather of this claim!"));
                     return CommandResult.success();
                 })
                 .build();

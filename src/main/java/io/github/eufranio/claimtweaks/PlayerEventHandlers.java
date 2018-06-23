@@ -20,9 +20,7 @@ public class PlayerEventHandlers {
     @Listener
     public void onJoin(ClientConnectionEvent.Join event, @Root Player p) {
         Claim claim = ClaimTweaks.API.getClaimManager(p.getWorld()).getClaimAt(p.getLocation());
-        if (claim.getType() != ClaimType.WILDERNESS) {
-            ClaimTweaks.updateSettings(claim, p.getUniqueId());
-        }
+        ClaimTweaks.updateSettings(claim, p.getUniqueId());
     }
 
 }
