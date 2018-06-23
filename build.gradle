@@ -32,7 +32,9 @@ version = pluginVersion
 
 dependencies {
     compile 'org.spongepowered:spongeapi:7.1.0-SNAPSHOT'
-    compile 'me.ryanhamshire:griefprevention:1.12.2-4.3.0.511:api'
+    compile ('me.ryanhamshire:griefprevention:1.12.2-4.3.0.630:api') {
+        exclude group: 'org.bstats', module: 'bstats-sponge'
+    }
     compile 'com.github.CrushedPixel:PacketGate:0.1.1'
 }
 
