@@ -18,6 +18,9 @@ public class ClaimEventHandlers {
     @Listener
     public void onClaimEnter(BorderClaimEvent e, @First Player player) {
         ClaimTweaks.updateSettings(e.getEnterClaim(), player.getUniqueId());
+
+        if (player.hasPermission("claimtweaks.bypass")) return;
+
         Claim enterClaim = e.getEnterClaim();
         ClaimStorage.Data enterData = ClaimStorage.of(enterClaim.getUniqueId());
         if (enterData != null) {

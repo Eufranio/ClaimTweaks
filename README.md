@@ -6,6 +6,7 @@ ClaimTweaks is an addon to [GriefPrevention](https://forums.spongepowered.org/t/
 * Sets the time of the player to a specific time (such as day)
 * Run commands when players enter a specific claim
 * Run commands when players leave a specific claim
+* Bypass commands by granting the `claimtweaks.bypass` permission
 
 ### Basic Setup
 1. Install [GriefPrevention](https://forums.spongepowered.org/t/griefprevention-official-thread-1-10-1-11-1-12-town-wecui-support/1123) and [PacketGate](https://github.com/CrushedPixel/PacketGate/releases) on your server (they are both dependencies, don't forget it!)
@@ -23,5 +24,8 @@ ClaimTweaks is an addon to [GriefPrevention](https://forums.spongepowered.org/t/
     * Toggles the weather state of the claim (sets it to always clear if raining or vice versa)
 * /ctweaks setTime [time]
     * Sets the time of players on the claim that you're in to `time`, in ticks. See the Minecraft wiki for exact values. Ex: `/ctweaks setTime 6000` will set the time to half day.
+    
+### Download
+You can download this plugin on Ore: https://ore.spongepowered.org/Eufranio/ClaimTweaks
     
 **If you find any issues, report them to the plugin's issue tracker. If you want, you can donate for me trough PayPal, my paypal email is frani@magitechserver.com**.
